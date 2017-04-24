@@ -1,0 +1,107 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>jQuery UI Datepicker - Default functionality</title>
+  <link rel="stylesheet" href="css/jquery-ui.css">
+  <script src="js/jquery.min.js"></script>
+  <script src="js/jquery-ui.js"></script>
+</head>
+<body>
+  <p>
+    <label>开始时间: </label>
+    <input type="text" id="start" name="start" value="" readonly="true" title="日期范围不能大于3天" placeholder="请选择开始时间" />
+    <input type="button" class="formButton" value="清空" />
+  </p>
+  <p>
+    <label>结束时间: </label>
+    <input type="text" id="end" name="end" value="" readonly="true" title="日期范围不能大于3天" placeholder="请选择结束时间" />
+    <input type="button" class="formButton" value="清空" />
+  </p>
+  <script>
+    // http://api.jqueryui.com/datepicker/
+    $(function() {
+      // 获取调用控件的对象
+      var dates = $("#start,#end");
+      var option;
+      //设置目标时间，因为例子中的开始时间和结束时间是有时间限制的
+      var targetDate;
+      var optionEnd;
+      var targetDateEnd;
+      var yearFrom=new Date().getYear()-60+1900;
+      var yearTo=new Date().getYear()+1+1900;
+      dates.datepicker({
+        dateFormat: 'yy-mm-dd',
+
+        buttonImage: 'images/date-icon.png',  //按钮的图片路径，自己设置 
+        buttonImageOnly: true, //Show an image trigger without any button. 
+        showOn: 'both', //触发条件，both表示点击文本域和图片按钮都生效
+        
+        yearRange: yearFrom+':'+yearTo, //年份范围
+        clearText:'清除',
+        closeText:'关闭',
+        prevText:'前一月',
+        nextText:'后一月',
+        currentText:' ',
+        dayNamesMin: ['周日', '周一', '周二', '周三', '周四', '周五', '周六'],
+        defaultDate: ' ',
+        showButtonPanel:false,
+
+        //是否可以修改年和月
+        changeMonth:true, 
+        changeYear:true,
+        monthNamesShort:['1月','2月','3月','4月','5月','6月','7月','8月','9月','10月','11月','12月'],
+
+        //当选择时间的时候触发此事件  时间跨度3天
+        onSelect: function(selectedDate){  
+          if(this.id == "start"){
+            // 如果是选择了开始时间
+            option = "minDate";
+            var selectedTime = getTimeByDateStr(selectedDate);
+            var minTime = selectedTime;
+            targetDate = new Date(minTime);
+            //设置结束时间
+            optionEnd = "maxDate";
+            targetDateEnd = new Date(minTime+2*24*60*60*1000);
+          }else{
+            // 如果是选择了结束时间
+            option = "maxDate";
+            var selectedTime = getTimeByDateStr(selectedDate);
+            var maxTime = selectedTime;
+            targetDate = new Date(maxTime);
+            //设置开始时间
+            optionEnd = "minDate";
+            targetDateEnd = new Date(maxTime-2*24*60*60*1000);
+
+          }
+          //设置时间框中时间，比如根据选择的开始时间，限制结束时间的不可选项,dates.not(this)是js选择器使用，
+          //datepicker("option", option, targetDate),这个就是日期控件封装的api了
+          dates.not(this).datepicker("option", option, targetDate);  
+          dates.not(this).datepicker("option", optionEnd, targetDateEnd); 
+        }
+      });
+
+      //根据日期字符串取得其时间
+      function getTimeByDateStr(dateStr){
+        var year = parseInt(dateStr.substring(0,4));
+        var month = parseInt(dateStr.substring(5,7),10)-1;
+        var day = parseInt(dateStr.substring(8,10),10);
+        return new Date(year, month, day).getTime();
+      }
+
+      //清空日历控件
+      $(".formButton").off("click").on("click",function(){
+        $(this).prev().val("");
+        //如果开始时间和结束时间都清空了，这时应该是你选择的那个框中是没有时间限制的，也就是说可以随便选择日期
+        if($('#start').val()=="" && $('#end').val()==""){
+          var dates = $("#start,#end");
+          //调用datepicker封装的api，使刚刚设置的开始时间和结束时间为空，这样就可以选择任意日期了
+          dates.datepicker("option", "minDate", null);
+          dates.datepicker("option", "maxDate", null);
+        }
+      })
+    });
+  </script>
+</body>
+</html>
